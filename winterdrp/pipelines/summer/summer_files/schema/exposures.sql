@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS exposures (
-    expid SERIAL PRIMARY KEY,
+    expid BIGINT PRIMARY KEY,
     obsdate INT,
     obsID INT,
     itid INT,
