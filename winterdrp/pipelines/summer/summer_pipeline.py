@@ -23,7 +23,7 @@ from winterdrp.processors.utils.image_selector import ImageSelector, ImageBatche
 from winterdrp.processors.photcal import PhotCalibrator
 from winterdrp.processors import MaskPixels, BiasCalibrator, FlatCalibrator
 from winterdrp.processors.csvlog import CSVLog
-from winterdrp.paths import core_fields, base_name_key, latest_save_key
+from winterdrp.paths import core_fields, base_name_key, latest_save_key, raw_img_key
 
 summer_flats_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 summer_gain = 1.0
@@ -72,19 +72,22 @@ def load_raw_summer_image(
         tel_crd = SkyCoord(ra=data[0].header['TELRA'], dec=data[0].header['TELDEC'], unit=(u.deg, u.deg))
         header['TELRA'] = tel_crd.ra.deg
         header['TELDEC'] = tel_crd.dec.deg
-        # filters = {'4': 'OPEN', '3': 'r', '1': 'u'}
         header['BZERO'] = 0
         header[latest_save_key] = path
-        header["RAWPATH"] = path
-        # print(img[0].data.shape)
+        header[raw_img_key] = path
         data[0].data = data[0].data * 1.0
-        # img[0].data[2048, :] = np.nan
 
         if 'other' in header['FILTERID']:
             header['FILTERID'] = 'r'
 
         header["CALSTEPS"] = ""
-        header["BASENAME"] = os.path.basename(path)
+
+        base_name = os.path.basename(path)
+
+        header[base_name_key] = base_name
+
+        header["EXPID"] = int("".join(base_name.split("_")[1:3]))
+
         header.append(('GAIN', summer_gain, 'Gain in electrons / ADU'), end=True)
 
         header['OBSDATE'] = int(header['UTC'].split('_')[0])
@@ -97,22 +100,22 @@ def load_raw_summer_image(
         header['EXPMJD'] = header['OBSMJD']
 
         if "SUBPROG" not in header.keys():
+            logger.warning(f"No SUBPROG found in header of {path}")
             header['SUBPROG'] = 'high_cadence'
 
         header['FILTER'] = header['FILTERID']
+
         header['DARKNAME'] = ''
-        # print('Time', header['shutopen'])
+
         try:
             header['SHUTOPEN'] = Time(header['SHUTOPEN'], format='iso').jd
         except (KeyError, ValueError):
-            # header['SHUTOPEN'] = None
-            pass
+            logger.warning(f"Error parsing 'SHUTOPEN' of {path}: ({header['SHUTOPEN']})")
 
         try:
             header['SHUTCLSD'] = Time(header['SHUTCLSD'], format='iso').jd
         except ValueError:
-            pass
-            # header['SHUTCLSD'] = None
+            logger.warning(f"Error parsing 'SHUTCLSD' of {path}: ({header['SHUTCLSD']})")
 
         header['PROCFLAG'] = 0
         sunmoon_keywords = ['MOONRA', 'MOONDEC', 'MOONILLF', 'MOONPHAS', 'MOONALT', 'SUNAZ', 'SUNALT']
@@ -146,7 +149,6 @@ def load_raw_summer_image(
 
         if 'COADDS' not in header.keys():
             header['COADDS'] = 1
-            # logger.debug('Setting COADDS to 1')
 
         crds = SkyCoord(ra=header['RA'], dec=header['DEC'], unit=(u.deg, u.deg))
         header['RA'] = crds.ra.deg
