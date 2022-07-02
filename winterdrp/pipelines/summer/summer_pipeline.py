@@ -74,8 +74,10 @@ def load_raw_summer_image(
         header['TELRA'] = tel_crd.ra.deg
         header['TELDEC'] = tel_crd.dec.deg
         header['BZERO'] = 0
+
         header[latest_save_key] = path
         header[raw_img_key] = path
+
         data[0].data = data[0].data * 1.0
 
         if 'other' in header['FILTERID']:
@@ -84,7 +86,9 @@ def load_raw_summer_image(
         header["CALSTEPS"] = ""
 
         base_name = os.path.basename(path)
+
         header[base_name_key] = base_name
+
         header["EXPID"] = int("".join(base_name.split("_")[1:3]))
 
         header.append(('GAIN', summer_gain, 'Gain in electrons / ADU'), end=True)
@@ -105,11 +109,9 @@ def load_raw_summer_image(
         if "SUBPROG" not in header.keys():
             # logger.warning(f"No SUBPROG found in header of {path}")
             header['SUBPROG'] = 'none'
+            logger.warning(f"No SUBPROG found in header of {path}")
 
         header['FILTER'] = header['FILTERID']
-
-        header['DARKNAME'] = ''
-
         try:
             header['SHUTOPEN'] = Time(header['SHUTOPEN'], format='iso').jd
         except (KeyError, ValueError):
