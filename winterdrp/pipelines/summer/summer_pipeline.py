@@ -60,15 +60,16 @@ def load_raw_summer_image(
     with fits.open(path) as data:
         header = data[0].header
         header["OBSCLASS"] = ["calibration", "science"][header["OBSTYPE"] == "SCIENCE"]
-        # print(header['OBSCLASS'])
         header['UTCTIME'] = header['UTCSHUT']
         header['TARGET'] = header['OBSTYPE'].lower()
-        # header['TARGET'] = header['FIELDID']
+
         crd = SkyCoord(ra=data[0].header['RA'], dec=data[0].header['DEC'], unit=(u.deg, u.deg))
         header['RA'] = crd.ra.deg
         header['DEC'] = crd.dec.deg
+
         header['CRVAL1'] = header['RA']
         header['CRVAL2'] = header['DEC']
+
         tel_crd = SkyCoord(ra=data[0].header['TELRA'], dec=data[0].header['TELDEC'], unit=(u.deg, u.deg))
         header['TELRA'] = tel_crd.ra.deg
         header['TELDEC'] = tel_crd.dec.deg
@@ -83,9 +84,7 @@ def load_raw_summer_image(
         header["CALSTEPS"] = ""
 
         base_name = os.path.basename(path)
-
         header[base_name_key] = base_name
-
         header["EXPID"] = int("".join(base_name.split("_")[1:3]))
 
         header.append(('GAIN', summer_gain, 'Gain in electrons / ADU'), end=True)
@@ -94,14 +93,18 @@ def load_raw_summer_image(
 
         obstime = Time(header['UTCISO'], format='iso')
         t0 = Time('2018-01-01', format='iso')
-        header['OBSID'] = 0
         header['NIGHT'] = np.floor((obstime - t0).jd).astype(int)
-        header['PROGID'] = 0
+
         header['EXPMJD'] = header['OBSMJD']
+        
+        for key in ["PROGID", "OBSID"]:
+            if key not in header.keys():
+                # logger.warning(f"No {key} found in header of {path}")
+                header[key] = 0
 
         if "SUBPROG" not in header.keys():
-            logger.warning(f"No SUBPROG found in header of {path}")
-            header['SUBPROG'] = 'high_cadence'
+            # logger.warning(f"No SUBPROG found in header of {path}")
+            header['SUBPROG'] = 'none'
 
         header['FILTER'] = header['FILTERID']
 
@@ -118,7 +121,9 @@ def load_raw_summer_image(
             logger.warning(f"Error parsing 'SHUTCLSD' of {path}: ({header['SHUTCLSD']})")
 
         header['PROCFLAG'] = 0
-        sunmoon_keywords = ['MOONRA', 'MOONDEC', 'MOONILLF', 'MOONPHAS', 'MOONALT', 'SUNAZ', 'SUNALT']
+        sunmoon_keywords = [
+            'MOONRA', 'MOONDEC', 'MOONILLF', 'MOONPHAS', 'MOONALT', 'SUNAZ', 'SUNALT',
+        ]
         for key in sunmoon_keywords:
             val = 0
             if key in header.keys():
@@ -142,7 +147,7 @@ def load_raw_summer_image(
             header['ITID'] = itid_dict[header['OBSTYPE']]
 
         if header['FIELDID'] == 'radec':
-            header['FIELDID'] = 0
+            header['FIELDID'] = 999999999
 
         if header['ITID'] != 1:
             header['FIELDID'] = -99
