@@ -86,9 +86,7 @@ def load_raw_summer_image(
         header["CALSTEPS"] = ""
 
         base_name = os.path.basename(path)
-
         header[base_name_key] = base_name
-
         header["EXPID"] = int("".join(base_name.split("_")[1:3]))
 
         header.append(('GAIN', summer_gain, 'Gain in electrons / ADU'), end=True)
