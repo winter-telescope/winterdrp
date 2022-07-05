@@ -197,13 +197,8 @@ class SummerPipeline(Pipeline):
             BiasCalibrator(),
             ImageBatcher(split_key="filter"),
             FlatCalibrator(),
-            ImageSelector(
-                (base_name_key, "SUMMER_20220402_214324_Camera0_0_0.fits"),
-            ),
-            ImageSaver(output_dir_name="scienceimages"),
-            # ImageBatcher(split_key=["RA", "DEC"]),
+            ImageBatcher(split_key=base_name_key),
             AutoAstrometry(pa=0, inv=True, pixel_scale=summer_pixel_scale),
-            ImageSaver(output_dir_name="testb"),
             Sextractor(
                 output_sub_dir="testb",
                 weight_image=summer_weight_path,
@@ -211,12 +206,10 @@ class SummerPipeline(Pipeline):
                 checkimage_type=None,
                 **sextractor_astrometry_config
             ),
-            ImageSaver(output_dir_name="testc"),
             Scamp(
                 ref_catalog_generator=summer_astrometric_catalog_generator,
                 scamp_config_path=scamp_path,
             ),
-            ImageSaver(output_dir_name="testd"),
             Swarp(swarp_config_path=swarp_path, imgpixsize=2400),
             ImageSaver(output_dir_name="photprocess"),
             Sextractor(output_sub_dir="photprocess",
@@ -231,7 +224,6 @@ class SummerPipeline(Pipeline):
                 db_table="proc",
                 schema_path=get_summer_schema_path("proc")
             )
-
         ]
     }
 
