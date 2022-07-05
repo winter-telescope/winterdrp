@@ -16,10 +16,11 @@ from astropy.io import fits
 from winterdrp.pipelines.summer.summer_files import get_summer_schema_path, summer_mask_path, summer_weight_path, \
     sextractor_astrometry_config, sextractor_photometry_config, scamp_path, swarp_path
 from winterdrp.pipelines.summer.summer_files.schema import summer_schema_dir
-from winterdrp.processors.split import SplitImage
 from winterdrp.processors.utils import ImageSaver
 from winterdrp.processors.utils.image_loader import ImageLoader
 from winterdrp.processors.utils.image_selector import ImageSelector, ImageBatcher
+from winterdrp.processors.split import SplitImage, sub_id_key
+from winterdrp.processors.utils import ImageSaver, HeaderAnnotator, ImageLoader, ImageSelector, ImageBatcher
 from winterdrp.processors.photcal import PhotCalibrator
 from winterdrp.processors import MaskPixels, BiasCalibrator, FlatCalibrator
 from winterdrp.processors.csvlog import CSVLog
@@ -188,12 +189,6 @@ class SummerPipeline(Pipeline):
                 schema_dir=summer_schema_dir
             ),
             MaskPixels(mask_path=summer_mask_path),
-            # SplitImage(
-            #     buffer_pixels=0,
-            #     n_x=1,
-            #     n_y=2
-            # ),
-            # ImageSaver(output_dir_name="rawimages"),
             DatabaseImageExporter(
                 db_name=pipeline_name,
                 db_table="raw",
@@ -203,7 +198,7 @@ class SummerPipeline(Pipeline):
             ImageBatcher(split_key="filter"),
             FlatCalibrator(),
             ImageSelector(
-                (base_name_key, "SUMMER_20220402_214324_Camera0.fits"),
+                (base_name_key, "SUMMER_20220402_214324_Camera0_0_0.fits"),
             ),
             ImageSaver(output_dir_name="scienceimages"),
             # ImageBatcher(split_key=["RA", "DEC"]),
