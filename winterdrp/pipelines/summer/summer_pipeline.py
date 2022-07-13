@@ -196,7 +196,9 @@ class SummerPipeline(Pipeline):
             BiasCalibrator(),
             ImageBatcher(split_key="filter"),
             FlatCalibrator(),
-            ImageBatcher(split_key=base_name_key),
+            ImageSelector(
+                (base_name_key, "SUMMER_20220402_214324_Camera0.fits"),
+            ),
             AutoAstrometry(pa=0, inv=True, pixel_scale=summer_pixel_scale),
             Sextractor(
                 output_sub_dir="testb",
