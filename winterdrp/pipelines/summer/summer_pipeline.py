@@ -108,7 +108,6 @@ def load_raw_summer_image(
         if "SUBPROG" not in header.keys():
             # logger.warning(f"No SUBPROG found in header of {path}")
             header['SUBPROG'] = 'none'
-            logger.warning(f"No SUBPROG found in header of {path}")
 
         header['FILTER'] = header['FILTERID']
         try:
@@ -181,19 +180,19 @@ class SummerPipeline(Pipeline):
                                 base_name_key
                             ] + core_fields
             ),
-            DatabaseImageExporter(
-                db_name=pipeline_name,
-                db_table="exposures",
-                schema_path=get_summer_schema_path("exposures"),
-                full_setup=True,
-                schema_dir=summer_schema_dir
-            ),
+            # DatabaseImageExporter(
+            #     db_name=pipeline_name,
+            #     db_table="exposures",
+            #     schema_path=get_summer_schema_path("exposures"),
+            #     full_setup=True,
+            #     schema_dir=summer_schema_dir
+            # ),
             MaskPixels(mask_path=summer_mask_path),
-            DatabaseImageExporter(
-                db_name=pipeline_name,
-                db_table="raw",
-                schema_path=get_summer_schema_path("raw")
-            ),
+            # DatabaseImageExporter(
+            #     db_name=pipeline_name,
+            #     db_table="raw",
+            #     schema_path=get_summer_schema_path("raw")
+            # ),
             BiasCalibrator(),
             ImageBatcher(split_key="filter"),
             FlatCalibrator(),
@@ -219,11 +218,11 @@ class SummerPipeline(Pipeline):
             ImageSaver(output_dir_name="processed"),
             PhotCalibrator(ref_catalog_generator=summer_photometric_catalog_generator),
             ImageSaver(output_dir_name="processed", additional_headers=['PROCIMG']),
-            DatabaseImageExporter(
-                db_name=pipeline_name,
-                db_table="proc",
-                schema_path=get_summer_schema_path("proc")
-            )
+            # DatabaseImageExporter(
+            #     db_name=pipeline_name,
+            #     db_table="proc",
+            #     schema_path=get_summer_schema_path("proc")
+            # )
         ]
     }
 
