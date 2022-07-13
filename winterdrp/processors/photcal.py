@@ -2,7 +2,7 @@ import astropy.io.fits
 import numpy as np
 import os
 import logging
-from winterdrp.processors.base_processor import BaseProcessor, PrerequisiteError
+from winterdrp.processors.base_processor import BaseImageProcessor, PrerequisiteError
 from winterdrp.paths import get_output_dir, copy_temp_file
 from collections.abc import Callable
 from winterdrp.catalog.base_catalog import BaseCatalog
@@ -28,7 +28,7 @@ REQUIRED_PARAMETERS = [
 ]
 
 
-class PhotCalibrator(BaseProcessor):
+class PhotCalibrator(BaseImageProcessor):
     base_key = 'photcalibrator'
 
     def __init__(self,
